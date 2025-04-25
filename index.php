@@ -3,7 +3,7 @@ require_once 'db.php';
 
 // Consulta para obtener todas las tareas con información de usuario
 $stmt = $pdo->prepare("
-    SELECT t.id, t.user_id,t.task_name, t.created_at, u.username 
+    SELECT t.id, t.task_name, t.created_at, u.username 
     FROM tasks t 
     JOIN users u ON t.user_id = u.id 
     ORDER BY t.created_at DESC
@@ -54,7 +54,6 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <thead>
                         <tr>
                             <th>ID</th>
-                            <th class="d-none">ID USUARIO</th>
                             <th>Tarea</th>
                             <th>Fecha de creación</th>
                             <th>Usuario</th>
@@ -66,7 +65,6 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <?php foreach ($tasks as $task): ?>
                                 <tr>
                                     <td><?= htmlspecialchars($task['id']) ?></td>
-                                    <td><?= htmlspecialchars($task['user_id']) ?></td>
                                     <td><?= htmlspecialchars($task['task_name']) ?></td>
                                     <td><?= htmlspecialchars($task['created_at']) ?></td>
                                     <td><?= htmlspecialchars($task['username']) ?></td>
@@ -155,10 +153,6 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         data: 'id'
                     },
                     {
-                        data: 'user_id',
-                        visible: false
-                    },
-                    {
                         data: 'task_name'
                     },
                     {
@@ -205,7 +199,6 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <?php foreach ($tasks as $task): ?>
                     tasksTable.row.add({
                         id: <?= json_encode($task['id']) ?>,
-                        user_id: <?= json_encode($task['user_id']) ?>,
                         task_name: <?= json_encode($task['task_name']) ?>,
                         created_at: <?= json_encode($task['created_at']) ?>,
                         username: <?= json_encode($task['username']) ?>
@@ -239,8 +232,8 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 submitBtn.textContent = 'Guardar Cambios';
                 addTaskForm.reset();
                 $('#task_id').val(rowData.id);
-                $('#user_id').val(rowData.user_id || '1');
                 $('#task_name').val(rowData.task_name);
+                $('#user_id').val(rowData.user_id || '1');
 
                 taskModal.classList.remove('hidden');
             });
@@ -305,20 +298,20 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 if (rowIdx.length > 0) {
                                     tasksTable.row(rowIdx[0]).data({
                                         id: data.task.id,
-                                        user_id: data.task.user_id,
                                         task_name: data.task.task_name,
                                         created_at: data.task.created_at,
-                                        username: data.task.username
+                                        username: data.task.username,
+                                        user_id: data.task.user_id
                                     }).draw(false);
                                 }
                             } else {
                                 // Añadir la nueva tarea a DataTable
                                 const newRow = tasksTable.row.add({
                                     id: data.task.id,
-                                    user_id: data.task.user_id,
                                     task_name: data.task.task_name,
                                     created_at: data.task.created_at,
                                     username: data.task.username,
+                                    user_id: data.task.user_id
                                 }).draw().node();
 
                                 $(newRow).addClass('bg-green-100');
