@@ -47,38 +47,13 @@ cd task-list-terra
 mysql -u username -p database_name < task-list-terra.sql
 ```
 
-4. Configura la conexión a la base de datos en `db.php`:
-
-```php
-<?php
-$host = 'localhost';
-$db = 'task-list-terra';
-$user = 'root';
-$pass = '';
-$charset = 'utf8mb4';
-
-// Conexión PDO
-$dsn = "mysql:host=$host;dbname=$db;charset=$charset";
-$options = [
-    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-    PDO::ATTR_EMULATE_PREPARES   => false,
-];
-
-try {
-    $pdo = new PDO($dsn, $user, $pass, $options);
-} catch (PDOException $e) {
-    throw new PDOException($e->getMessage(), (int)$e->getCode());
-}
-```
-
-5. Inicia un servidor local:
+4. Inicia un servidor local:
 
 ```bash
 php -S localhost:8000
 ```
 
-6. Accede a la aplicación en tu navegador:
+5. Accede a la aplicación en tu navegador:
 
 ```
 http://localhost:8000/index.php
