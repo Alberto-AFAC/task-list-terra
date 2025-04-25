@@ -18,7 +18,7 @@ Task List Terra es una aplicación web que permite gestionar tareas diarias de f
 
 ## 🛠️ Tecnologías utilizadas
 
-- PHP 8.5+
+- PHP 8.2+
 - MySQL
 - HTML5
 - Tailwind CSS
