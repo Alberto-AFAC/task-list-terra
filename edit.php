@@ -1,6 +1,7 @@
 <?php
 require_once 'db.php';
 
+// Respuesta por defecto
 $response = [
     'status' => 'error',
     'message' => 'Ha ocurrido un error desconocido',
@@ -25,7 +26,7 @@ if (isset($_POST['task_id']) && isset($_POST['task_name']) && isset($_POST['user
             if ($result) {
                 // Obtener los datos actualizados de la tarea para devolverlos
                 $stmt = $pdo->prepare("
-                    SELECT t.id, t.task_name, t.created_at, u.username 
+                    SELECT t.id, t.user_id, t.task_name, t.created_at, u.username 
                     FROM tasks t 
                     JOIN users u ON t.user_id = u.id 
                     WHERE t.id = ?
