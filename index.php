@@ -111,12 +111,12 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
             </div>
 
             <form id="addTaskForm" class="space-y-4">
+                <input type="hidden" name="task_id" id="task_id"><!-- Campo oculto para edición -->
                 <div>
                     <label for="task_name" class="block text-sm font-medium text-gray-700">Nombre de la tarea</label>
                     <input type="text" name="task_name" id="task_name" required
                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border">
                 </div>
-
                 <div>
                     <label for="user_id" class="block text-sm font-medium text-gray-700">Usuario</label>
                     <select name="user_id" id="user_id"
@@ -126,7 +126,6 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <?php endforeach; ?>
                     </select>
                 </div>
-
                 <div class="flex justify-end space-x-3 pt-4">
                     <button type="button" id="cancelBtn" class="py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                         Cancelar
@@ -190,13 +189,11 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 }],
                 // Convertir los datos existentes a formato DataTables
                 fnRowCallback: function(nRow, aData, iDisplayIndex, iDisplayIndexFull) {
-                    // Aplicar clases de Tailwind a las celdas
                     $('td', nRow).addClass('px-6 py-4 whitespace-nowrap text-sm');
                     return nRow;
                 }
             });
 
-            // Cargar datos iniciales en el DataTable
             <?php if (count($tasks) > 0): ?>
                 tasksTable.clear();
                 <?php foreach ($tasks as $task): ?>
@@ -216,9 +213,28 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
             const cancelBtn = document.getElementById('cancelBtn');
             const taskModal = document.getElementById('taskModal');
             const addTaskForm = document.getElementById('addTaskForm');
+            const modalTitle = taskModal.querySelector('h3');
+            const submitBtn = addTaskForm.querySelector('button[type="submit"]');
 
             // Abrir modal
             openModalBtn.addEventListener('click', function() {
+                modalTitle.textContent = 'Agregar Nueva Tarea';
+                submitBtn.textContent = 'Guardar';
+                addTaskForm.reset();
+                document.getElementById('task_id').value = '';
+                taskModal.classList.remove('hidden');
+            });
+
+            $('#tasksTable').on('click', '.edit-task', function(e) {
+                e.preventDefault();
+                const rowData = tasksTable.row($(this).closest('tr')).data();
+                modalTitle.textContent = 'Editar Tarea';
+                submitBtn.textContent = 'Guardar Cambios';
+                addTaskForm.reset();
+                $('#task_id').val(rowData.id);
+                $('#task_name').val(rowData.task_name);
+                $('#user_id').val(rowData.user_id || '1');
+
                 taskModal.classList.remove('hidden');
             });
 
@@ -226,25 +242,27 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
             function closeModal() {
                 taskModal.classList.add('hidden');
                 addTaskForm.reset();
+                document.getElementById('task_id').value = '';
             }
-
             closeModalBtn.addEventListener('click', closeModal);
             cancelBtn.addEventListener('click', closeModal);
-
-            // Cerrar modal al hacer clic fuera
             taskModal.addEventListener('click', function(e) {
                 if (e.target === taskModal) {
                     closeModal();
                 }
             });
 
-            // Enviar formulario con Ajax y SweetAlert2
+            taskModal.addEventListener('click', function(e) {
+                if (e.target === taskModal) {
+                    closeModal();
+                }
+            });
+
             addTaskForm.addEventListener('submit', function(e) {
                 e.preventDefault();
 
-                // Mostrar indicador de carga con SweetAlert2
                 Swal.fire({
-                    title: 'Guardando tarea...',
+                    title: 'Guardando...',
                     allowOutsideClick: false,
                     didOpen: () => {
                         Swal.showLoading();
@@ -252,44 +270,60 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 });
 
                 const formData = new FormData(addTaskForm);
+                const isEdit = !!formData.get('task_id');
+                const url = isEdit ? 'edit.php' : 'add.php';
 
-                fetch('add.php', {
+                fetch(url, {
                         method: 'POST',
                         body: formData
                     })
                     .then(response => response.json())
                     .then(data => {
                         if (data.status === 'success') {
-                            // Cerrar el modal
                             closeModal();
 
-                            // Mostrar SweetAlert2 de éxito
                             Swal.fire({
                                 icon: 'success',
                                 title: '¡Éxito!',
-                                text: 'La tarea ha sido añadida correctamente',
+                                text: isEdit ? 'La tarea ha sido actualizada correctamente' : 'La tarea ha sido añadida correctamente',
                                 timer: 2000,
                                 showConfirmButton: false
                             });
 
-                            // Añadir la nueva tarea a DataTable
-                            const newRow = tasksTable.row.add({
-                                id: data.task.id,
-                                task_name: data.task.task_name,
-                                created_at: data.task.created_at,
-                                username: data.task.username
-                            }).draw().node();
+                            if (isEdit) {
+                                // Actualizar la fila en DataTable
+                                let rowIdx = tasksTable.rows().eq(0).filter(function(idx) {
+                                    return tasksTable.cell(idx, 0).data() == data.task.id;
+                                });
+                                if (rowIdx.length > 0) {
+                                    tasksTable.row(rowIdx[0]).data({
+                                        id: data.task.id,
+                                        task_name: data.task.task_name,
+                                        created_at: data.task.created_at,
+                                        username: data.task.username,
+                                        user_id: data.task.user_id
+                                    }).draw(false);
+                                }
+                            } else {
+                                // Añadir la nueva tarea a DataTable
+                                const newRow = tasksTable.row.add({
+                                    id: data.task.id,
+                                    task_name: data.task.task_name,
+                                    created_at: data.task.created_at,
+                                    username: data.task.username,
+                                    user_id: data.task.user_id
+                                }).draw().node();
 
-                            // Destacar la nueva fila brevemente
-                            $(newRow).addClass('bg-green-100');
-                            setTimeout(function() {
-                                $(newRow).removeClass('bg-green-100');
-                            }, 3000);
+                                $(newRow).addClass('bg-green-100');
+                                setTimeout(function() {
+                                    $(newRow).removeClass('bg-green-100');
+                                }, 3000);
+                            }
                         } else {
                             Swal.fire({
                                 icon: 'error',
                                 title: 'Error',
-                                text: data.message || 'Ha ocurrido un error al añadir la tarea'
+                                text: data.message || 'Ha ocurrido un error'
                             });
                         }
                     })
