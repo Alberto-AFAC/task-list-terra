@@ -2,8 +2,6 @@
 
 Una aplicación web sencilla de gestión de tareas desarrollada con PHP nativo, MySQL y Tailwind CSS.
 
-![Task List Terra](https://raw.githubusercontent.com/username/task-list-terra/main/screenshot.png)
-
 ## 📋 Descripción
 
 Task List Terra es una aplicación web que permite gestionar tareas diarias de forma sencilla. Permite crear, editar y eliminar tareas asignadas a diferentes usuarios, con una interfaz intuitiva y responsive.
@@ -32,21 +30,25 @@ Task List Terra es una aplicación web que permite gestionar tareas diarias de f
 ## 📦 Instalación
 
 1. Clona el repositorio:
+
 ```bash
 git clone https://github.com/Alberto-AFAC/task-list-terra.git
 ```
 
 2. Navega al directorio del proyecto:
+
 ```bash
 cd task-list-terra
 ```
 
 3. Importa la base de datos incluida en el repositorio:
+
 ```bash
 mysql -u username -p database_name < task-list-terra.sql
 ```
 
 4. Configura la conexión a la base de datos en `db.php`:
+
 ```php
 <?php
 $host = 'localhost';
@@ -71,11 +73,13 @@ try {
 ```
 
 5. Inicia un servidor local:
+
 ```bash
 php -S localhost:8000
 ```
 
 6. Accede a la aplicación en tu navegador:
+
 ```
 http://localhost:8000/index.php
 ```
@@ -85,6 +89,7 @@ http://localhost:8000/index.php
 La base de datos consta de dos tablas principales:
 
 - **users**: Almacena la información de los usuarios
+
   - id (PK)
   - username
   - created_at
